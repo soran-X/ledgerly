@@ -2,9 +2,9 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { LogoutButton } from '@/components/LogoutButton'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DashboardTabs } from '@/components/DashboardTabs'
 import { InsightsCard } from '@/components/InsightsCard'
+import { BudgetChart } from '@/components/BudgetChart'
 import { themeStyleTag } from '@/lib/themes'
 import type { Entry, Asset, Message } from '@/lib/types'
 import type { MonthBill } from '@/components/DashboardTabs'
@@ -172,21 +172,21 @@ export default async function DashboardPage() {
   const netWorth = totalAssets + totalInvestments - totalLiabilities
 
   const summaryCards = [
-    { label: 'Total Income',    value: fmtCard(income),   full: fmt(income),   color: 'text-green-600 dark:text-green-400',    border: 'border-t-green-500'    },
-    { label: 'Total Bills',     value: fmtCard(bills),    full: fmt(bills),    color: 'text-red-600 dark:text-red-400',        border: 'border-t-red-500'      },
-    { label: 'Total Savings',   value: fmtCard(savings),  full: fmt(savings),  color: 'text-blue-600 dark:text-blue-400',      border: 'border-t-blue-500'     },
-    { label: 'Total Expenses',  value: fmtCard(expenses), full: fmt(expenses), color: 'text-purple-600 dark:text-purple-400',  border: 'border-t-purple-500'   },
+    { label: 'Income',   value: fmtCard(income),   full: fmt(income),   gradient: 'from-emerald-400 to-green-500',  icon: '💰' },
+    { label: 'Bills',    value: fmtCard(bills),    full: fmt(bills),    gradient: 'from-rose-400 to-red-500',       icon: '🧾' },
+    { label: 'Savings',  value: fmtCard(savings),  full: fmt(savings),  gradient: 'from-sky-400 to-blue-500',       icon: '🐷' },
+    { label: 'Expenses', value: fmtCard(expenses), full: fmt(expenses), gradient: 'from-purple-400 to-violet-500',  icon: '🛍️' },
     {
-      label: 'Leftover Balance',
+      label: 'Leftover',
       value: fmtCard(leftover), full: fmt(leftover),
-      color: leftover >= 0 ? 'text-violet-600 dark:text-violet-400' : 'text-destructive',
-      border: leftover >= 0 ? 'border-t-violet-500' : 'border-t-destructive',
+      gradient: leftover >= 0 ? 'from-violet-400 to-indigo-500' : 'from-orange-400 to-red-500',
+      icon: leftover >= 0 ? '✨' : '⚠️',
     },
     {
       label: 'Net Worth',
       value: fmtCard(netWorth), full: fmt(netWorth),
-      color: netWorth >= 0 ? 'text-violet-600 dark:text-violet-400' : 'text-destructive',
-      border: netWorth >= 0 ? 'border-t-violet-500' : 'border-t-destructive',
+      gradient: netWorth >= 0 ? 'from-indigo-400 to-purple-600' : 'from-orange-400 to-red-500',
+      icon: netWorth >= 0 ? '📈' : '📉',
     },
   ]
 
@@ -258,34 +258,30 @@ export default async function DashboardPage() {
           <h2 className="text-2xl font-bold tracking-tight">
             {timeGreeting}, {firstName}! 👋
           </h2>
-          <p className="text-sm text-muted-foreground mt-0.5">Here&apos;s your financial snapshot.</p>
+          <p className="text-sm text-muted-foreground mt-0.5">{monthLabel} — here&apos;s how you&apos;re doing.</p>
         </div>
 
         {/* Summary Cards */}
         <section>
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Overview
-          </h2>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {summaryCards.map((card) => (
-              <Card key={card.label} className={`border-t-4 ${card.border} shadow-sm`}>
-                <CardHeader className="pb-1 pt-3 px-4">
-                  <CardTitle className="text-xs font-medium text-muted-foreground truncate">
-                    {card.label}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pb-3 px-4">
-                  <p
-                    title={card.full}
-                    className={`text-lg font-bold tabular-nums leading-tight ${card.color}`}
-                  >
-                    {card.value}
-                  </p>
-                </CardContent>
-              </Card>
+              <div
+                key={card.label}
+                title={card.full}
+                className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${card.gradient} p-4 shadow-md text-white`}
+              >
+                <span className="absolute -bottom-2 -right-1 text-5xl opacity-[0.15] select-none pointer-events-none leading-none">
+                  {card.icon}
+                </span>
+                <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-1">{card.label}</p>
+                <p className="text-xl font-bold tabular-nums leading-tight">{card.value}</p>
+              </div>
             ))}
           </div>
         </section>
+
+        {/* Budget Chart */}
+        <BudgetChart income={income} bills={bills} savings={savings} expenses={expenses} />
 
         {/* AI Insights */}
         <InsightsCard />
